@@ -1,7 +1,7 @@
 ﻿<script lang="ts" setup>
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import { rotaService, type Rota } from "@/services/RotaService";
-import RotaForm from "@/views/Rota/RotaForm.vue";
+import RotaFormOnly from "@/components/RotaFormOnly.vue";
 
 const props = defineProps({
   modelValue: [String, Number, Object],
@@ -47,6 +47,11 @@ async function loadItems() {
   items.value = await rotaService.list();
 }
 
+function onSaved() {
+  loadItems();
+  dialog.value = false;
+}
+
 watch(dialog, (v) => {
   if (!v) loadItems();
 });
@@ -79,7 +84,7 @@ onMounted(async () => {
   <v-dialog v-model="dialog" max-width="1000" persistent>
     <v-card title="Cadastro de Rota">
       <v-card-text>
-        <RotaForm/>
+        <RotaFormOnly @saved="onSaved"/>
         <div class="d-flex justify-end mt-2">
           <v-btn color="secondary" @click="dialog = false">Fechar</v-btn>
         </div>

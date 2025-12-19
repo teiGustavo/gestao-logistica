@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import type { Produto } from "@/services/ProdutoService";
 import { produtoService } from "@/services/ProdutoService";
-import ProdutoForm from "@/views/Produto/ProdutoForm.vue";
+import ProdutoFormOnly from "@/components/ProdutoFormOnly.vue";
 
 const props = defineProps({
   modelValue: [String, Number, Object],
@@ -40,6 +40,13 @@ function updateValue(val: any) {
 async function loadItems() {
   items.value = await produtoService.list();
 }
+
+function onSaved() {
+  // Recarrega e fecha o dialog
+  loadItems();
+  dialog.value = false;
+}
+
 watch(dialog, (v) => {
   if (!v) loadItems();
 });
@@ -57,7 +64,7 @@ onMounted(async () => {
   <v-dialog v-model="dialog" max-width="1000" persistent>
     <v-card title="Cadastro de Produto">
       <v-card-text>
-        <ProdutoForm />
+        <ProdutoFormOnly @saved="onSaved" @cancel="dialog = false" />
         <div class="d-flex justify-end mt-2"><v-btn color="secondary" @click="dialog = false">Fechar</v-btn></div>
       </v-card-text>
     </v-card>

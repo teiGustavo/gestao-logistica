@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import type { Cliente } from "@/services/ClienteService";
 import { clienteService } from "@/services/ClienteService";
-import ClienteForm from "@/views/Cliente/ClienteForm.vue";
+import ClienteFormOnly from "@/components/ClienteFormOnly.vue";
 
 const props = defineProps({
   modelValue: [String, Number, Object],
@@ -46,6 +46,11 @@ async function loadItems() {
   items.value = await clienteService.list();
 }
 
+function onSaved() {
+  loadItems();
+  dialog.value = false;
+}
+
 watch(dialog, (v) => {
   if (!v) {
     // when dialog closes, reload list to include newly created item
@@ -83,7 +88,7 @@ onMounted(async () => {
   <v-dialog v-model="dialog" max-width="1000" persistent>
     <v-card title="Cadastro de Cliente">
       <v-card-text>
-        <ClienteForm />
+        <ClienteFormOnly @saved="onSaved" @cancel="dialog = false" />
         <div class="d-flex justify-end mt-2">
           <v-btn color="secondary" @click="dialog = false">Fechar</v-btn>
         </div>

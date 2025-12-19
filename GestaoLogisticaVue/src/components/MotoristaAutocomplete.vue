@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import type { Motorista } from "@/services/MotoristaService";
 import { motoristaService } from "@/services/MotoristaService";
-import MotoristaForm from "@/views/Motorista/MotoristaForm.vue";
+import MotoristaFormOnly from "@/components/MotoristaFormOnly.vue";
 
 const props = defineProps({
   modelValue: [String, Number, Object],
@@ -37,10 +37,15 @@ const itemsForSelect = computed(() =>
 function updateValue(val: any) {
   emit("update:modelValue", val);
 }
-const onSaved = async () => {
+async function loadItems() {
   items.value = await motoristaService.list();
+}
+
+function onSaved() {
+  loadItems();
   dialog.value = false;
-};
+}
+
 onMounted(async () => {
   items.value = await motoristaService.list();
 });
@@ -55,7 +60,7 @@ onMounted(async () => {
   <v-dialog v-model="dialog" max-width="1000" persistent>
     <v-card title="Cadastro de Motorista">
       <v-card-text>
-        <MotoristaForm />
+        <MotoristaFormOnly @saved="onSaved" @cancel="dialog = false" />
         <div class="d-flex justify-end mt-2"><v-btn color="secondary" @click="dialog = false">Fechar</v-btn></div>
       </v-card-text>
     </v-card>

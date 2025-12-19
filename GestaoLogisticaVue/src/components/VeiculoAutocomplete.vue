@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import type { Veiculo } from "@/services/VeiculoService";
 import { veiculoService } from "@/services/VeiculoService";
-import VeiculoForm from "@/views/Veiculo/VeiculoForm.vue";
+import VeiculoFormOnly from "@/components/VeiculoFormOnly.vue";
 
 const props = defineProps({
   modelValue: [String, Number, Object],
@@ -40,6 +40,12 @@ function updateValue(val: any) {
 async function loadItems() {
   items.value = await veiculoService.list();
 }
+
+function onSaved() {
+  loadItems();
+  dialog.value = false;
+}
+
 watch(dialog, (v) => {
   if (!v) loadItems();
 });
@@ -57,7 +63,7 @@ onMounted(async () => {
   <v-dialog v-model="dialog" max-width="1000" persistent>
     <v-card title="Cadastro de Veículo">
       <v-card-text>
-        <VeiculoForm />
+        <VeiculoFormOnly @saved="onSaved" @cancel="dialog = false" />
         <div class="d-flex justify-end mt-2"><v-btn color="secondary" @click="dialog = false">Fechar</v-btn></div>
       </v-card-text>
     </v-card>

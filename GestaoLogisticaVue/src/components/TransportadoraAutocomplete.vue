@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import type { Transportadora } from "@/services/TransportadoraService";
 import { transportadoraService } from "@/services/TransportadoraService";
-import TransportadoraForm from "@/views/Transportadora/TransportadoraForm.vue";
+import TransportadoraFormOnly from "@/components/TransportadoraFormOnly.vue";
 
 const props = defineProps({
   modelValue: [String, Number, Object],
@@ -43,6 +43,12 @@ function updateValue(val: any) {
 async function loadItems() {
   items.value = await transportadoraService.list();
 }
+
+function onSaved() {
+  loadItems();
+  dialog.value = false;
+}
+
 watch(dialog, (v) => {
   if (!v) loadItems();
 });
@@ -73,7 +79,7 @@ onMounted(async () => {
   <v-dialog v-model="dialog" max-width="1000" persistent>
     <v-card title="Cadastro de Transportadora">
       <v-card-text>
-        <TransportadoraForm />
+        <TransportadoraFormOnly @saved="onSaved" @cancel="dialog = false" />
         <div class="d-flex justify-end mt-2">
           <v-btn color="secondary" @click="dialog = false">Fechar</v-btn>
         </div>

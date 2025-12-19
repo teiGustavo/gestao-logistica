@@ -1,7 +1,7 @@
 ﻿<script lang="ts" setup>
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import { armazemService, type Armazem } from "@/services/ArmazemService";
-import ArmazemForm from "@/views/Armazem/ArmazemForm.vue";
+import ArmazemFormOnly from "@/components/ArmazemFormOnly.vue";
 
 const props = defineProps({
   modelValue: [String, Number, Object],
@@ -42,6 +42,11 @@ async function loadItems() {
   items.value = await armazemService.list();
 }
 
+function onSaved() {
+  loadItems();
+  dialog.value = false;
+}
+
 watch(dialog, (v) => {
   if (!v) loadItems();
 });
@@ -71,7 +76,7 @@ onMounted(async () => {
   <v-dialog v-model="dialog" max-width="1000" persistent>
     <v-card title="Cadastro de Armazém">
       <v-card-text>
-        <ArmazemForm/>
+        <ArmazemFormOnly @saved="onSaved" @cancel="dialog = false"/>
         <div class="d-flex justify-end mt-2">
           <v-btn color="secondary" @click="dialog = false">Fechar</v-btn>
         </div>

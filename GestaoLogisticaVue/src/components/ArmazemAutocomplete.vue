@@ -1,40 +1,45 @@
 ﻿<script lang="ts" setup>
-import {computed, onMounted, ref, shallowRef, watch} from 'vue';
-import ArmazemForm from '../views/Armazem/ArmazemForm.vue';
-import armazemService, {Armazem} from "../services/ArmazemService";
+import { computed, onMounted, ref, shallowRef, watch } from "vue";
+import { armazemService, type Armazem } from "@/services/ArmazemService";
+import ArmazemForm from "@/views/Armazem/ArmazemForm.vue";
 
 const props = defineProps({
   modelValue: [String, Number, Object],
-  itemTitle: {type: String, default: 'text'},
-  itemValue: {type: String, default: 'value'},
+  itemTitle: { type: String, default: "text" },
+  itemValue: { type: String, default: "value" },
   error: Boolean,
   errorMessages: String,
-  label: {type: String, default: 'Filtrar Armazém...'},
+  label: { type: String, default: "Filtrar Armazém..." },
 });
 const items = ref<Armazem[]>();
 const dialog = shallowRef(false);
 const internalValue = ref<any>(props.modelValue ?? null);
-const emit = defineEmits(['update:modelValue', 'select']);
-watch(() => props.modelValue, (v) => {
-  internalValue.value = v;
-});
+const emit = defineEmits(["update:modelValue", "select"]);
+watch(
+  () => props.modelValue,
+  (v) => {
+    internalValue.value = v;
+  },
+);
 watch(internalValue, (v) => {
-  emit('update:modelValue', v);
-  const found = (items.value ?? []).find(it => it.codArmazem === v) ?? null;
-  emit('select', found);
+  emit("update:modelValue", v);
+  const found = (items.value ?? []).find((it) => it.codArmazem === v) ?? null;
+  emit("select", found);
 });
-const itemsForSelect = computed(() => (items.value ?? []).map(v => ({
-  text: `${v.nome ?? 'Armazém'} (#${v.codArmazem})`,
-  value: v.codArmazem,
-  raw: v
-})));
+const itemsForSelect = computed(() =>
+  (items.value ?? []).map((v) => ({
+    text: `${v.nome ?? "Armazém"} (#${v.codArmazem})`,
+    value: v.codArmazem,
+    raw: v,
+  })),
+);
 
 function updateValue(val: any) {
-  emit('update:modelValue', val);
+  emit("update:modelValue", val);
 }
 
 async function loadItems() {
-  items.value = await armazemService.list().then((res: any) => res?.data ?? []);
+  items.value = await armazemService.list();
 }
 
 watch(dialog, (v) => {

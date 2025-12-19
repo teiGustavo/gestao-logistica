@@ -1,37 +1,8 @@
-<template>
-  <DefaultLayout>
-    <v-container>
-      <v-card>
-        <v-card-title class="text-h5">Listagem de Produto</v-card-title>
-        <v-card-actions>
-          <v-btn color="primary" @click="$router.push('/Produto/create')"
-            >Novo Produto</v-btn
-          >
-        </v-card-actions>
-        <v-data-table
-          :headers="headers"
-          :items="items"
-          item-key="codProduto"
-          class="elevation-1"
-        >
-          <template v-slot:item.actions="{ item }">
-            <v-btn
-              small
-              color="warning"
-              @click="$router.push('/Produto/edit/' + item.codProduto)"
-              >Editar</v-btn
-            >
-          </template>
-        </v-data-table>
-      </v-card>
-    </v-container>
-  </DefaultLayout>
-</template>
 <script setup lang="ts">
+import { onMounted, ref } from "vue";
 import DefaultLayout from "@/layouts/DefaultLayout.vue";
-import { ref, onMounted } from "vue";
-import svc from "@/services/ProdutoService";
-import type { Produto } from '@/services/ProdutoService'
+import type { Produto } from "@/services/ProdutoService";
+import { produtoService } from "@/services/ProdutoService";
 
 const items = ref<Produto[]>([]);
 const headers = [
@@ -45,7 +16,36 @@ const headers = [
 ];
 
 onMounted(async () => {
-  const res = await svc.list();
-  items.value = res.data;
+  items.value = await produtoService.list();
 });
 </script>
+
+<template>
+  <DefaultLayout>
+    <v-container>
+      <v-card>
+        <v-card-title class="text-h5">Listagem de Produto</v-card-title>
+        <v-card-actions>
+          <v-btn color="primary" @click="$router.push({ name: 'produto-create' })"
+            >Novo Produto</v-btn
+          >
+        </v-card-actions>
+        <v-data-table
+          :headers="headers"
+          :items="items"
+          item-key="codProduto"
+          class="elevation-1"
+        >
+          <template v-slot:item.actions="{ item }">
+            <v-btn
+              small
+              color="warning"
+              @click="$router.push({ name: 'produto-edit', params: { id: item.codProduto } })"
+              >Editar</v-btn
+            >
+          </template>
+        </v-data-table>
+      </v-card>
+    </v-container>
+  </DefaultLayout>
+</template>

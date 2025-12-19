@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import DefaultLayout from '../layouts/DefaultLayout.vue';
-import { useAuthStore } from "../stores/authStore";
+import DefaultLayout from "@/layouts/DefaultLayout.vue";
+import { useAuthStore } from "@/stores/authStore";
 
 const authStore = useAuthStore();
 </script>

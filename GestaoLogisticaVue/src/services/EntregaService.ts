@@ -1,4 +1,4 @@
-import api from "./api";
+import api from "@/services/api";
 
 export interface Entrega {
   codEntrega: number;
@@ -18,15 +18,32 @@ export interface Entrega {
   criadoEm?: string;
 }
 
+export type EntregaCreatePayload = Omit<Entrega, "codEntrega" | "criadoEm">;
+
 const base = "/entregas";
 
-export default {
-  list: (params?: Record<string, unknown>) => api.get(base, { params }),
-  get: (id: number) => api.get(`${base}/${id}`),
-  create: (payload: Entrega) => api.post(base, payload),
-  update: (arg1: any, arg2?: any) => {
-    if (typeof arg1 === 'number') return api.put(`${base}/${arg1}`, arg2);
-    return api.put(base, arg1);
+export const entregaService = {
+  async list(params?: Record<string, unknown>): Promise<Entrega[]> {
+    const { data } = await api.get<Entrega[]>(base, { params });
+    return data;
   },
-  remove: (id: number) => api.delete(`${base}/${id}`),
+
+  async get(id: number): Promise<Entrega | null> {
+    const { data } = await api.get<Entrega>(`${base}/${id}`);
+    return data;
+  },
+
+  async create(payload: EntregaCreatePayload): Promise<{ id: number }> {
+    const { data } = await api.post<{ id: number }>(base, payload);
+    return data;
+  },
+
+  async update(id: number, payload: Partial<Entrega>): Promise<Entrega> {
+    const { data } = await api.put<Entrega>(`${base}/${id}`, payload);
+    return data;
+  },
+
+  async remove(id: number): Promise<void> {
+    await api.delete(`${base}/${id}`);
+  },
 };

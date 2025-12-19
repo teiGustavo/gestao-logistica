@@ -1,4 +1,4 @@
-import api from "./api";
+import api from "@/services/api";
 
 export interface Usuario {
   codUsuario: number;
@@ -10,15 +10,32 @@ export interface Usuario {
   criadoEm?: string;
 }
 
+export type UsuarioCreatePayload = Omit<Usuario, "codUsuario" | "criadoEm">;
+
 const base = "/usuarios";
 
-export default {
-  list: (params?: Record<string, unknown>) => api.get(base, { params }),
-  get: (id: number) => api.get(`${base}/${id}`),
-  create: (payload: Usuario) => api.post(base, payload),
-  update: (arg1: any, arg2?: any) => {
-    if (typeof arg1 === 'number') return api.put(`${base}/${arg1}`, arg2);
-    return api.put(base, arg1);
+export const usuarioService = {
+  async list(params?: Record<string, unknown>): Promise<Usuario[]> {
+    const { data } = await api.get<Usuario[]>(base, { params });
+    return data;
   },
-  remove: (id: number) => api.delete(`${base}/${id}`),
+
+  async get(id: number): Promise<Usuario | null> {
+    const { data } = await api.get<Usuario>(`${base}/${id}`);
+    return data;
+  },
+
+  async create(payload: UsuarioCreatePayload): Promise<{ id: number }> {
+    const { data } = await api.post<{ id: number }>(base, payload);
+    return data;
+  },
+
+  async update(id: number, payload: Partial<Usuario>): Promise<Usuario> {
+    const { data } = await api.put<Usuario>(`${base}/${id}`, payload);
+    return data;
+  },
+
+  async remove(id: number): Promise<void> {
+    await api.delete(`${base}/${id}`);
+  },
 };

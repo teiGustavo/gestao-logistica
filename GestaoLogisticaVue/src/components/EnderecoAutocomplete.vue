@@ -1,33 +1,27 @@
 <script setup lang="ts">
-import { onMounted, shallowRef, ref, computed, watch } from 'vue';
-import EnderecoFormOnly from '@/components/EnderecoFormOnly.vue';
-import { Endereco } from "@/services/EnderecoService";
-import enderecoService from "@/services/EnderecoService";
+import { computed, onMounted, ref, shallowRef, watch } from "vue";
+import EnderecoFormOnly from "@/components/EnderecoFormOnly.vue";
+import type { Endereco } from "@/services/EnderecoService";
+import { enderecoService } from "@/services/EnderecoService";
 
 /* Props do autocomplete */
 const props = defineProps({
   modelValue: [String, Number, Object],
-  itemTitle: { type: String, default: 'text' },
-  itemValue: { type: String, default: 'value' },
+  itemTitle: { type: String, default: "text" },
+  itemValue: { type: String, default: "value" },
   error: Boolean,
   errorMessages: String,
-  label: { type: String, default: 'Filtrar Endereço...' },
+  label: { type: String, default: "Filtrar Endereço..." },
 });
 
 const items = ref<Endereco[]>();
 
 onMounted(async () => {
-  items.value = await enderecoService.list().then((res: { data: any; }) => {
-    if (res?.data) {
-      return res.data;
-    }
-    
-    return [];
-  });
+  items.value = await enderecoService.list();
 });
 
 /* Emissão */
-const emit = defineEmits(['update:modelValue', 'select']);
+const emit = defineEmits(["update:modelValue", "select"]);
 
 /* Estado interno */
 const dialog = shallowRef(false);
@@ -36,20 +30,23 @@ const dialog = shallowRef(false);
 const internalValue = ref<any>(props.modelValue ?? null);
 
 // Mantém internalValue atualizado quando prop mudar
-watch(() => props.modelValue, (v) => {
-  internalValue.value = v;
-});
+watch(
+  () => props.modelValue,
+  (v) => {
+    internalValue.value = v;
+  },
+);
 
 // Emite para o pai quando internalValue mudar — envia o id e também o objeto completo (select)
 watch(internalValue, (v) => {
-  emit('update:modelValue', v);
-  const found = (items.value ?? []).find(it => it.codEndereco === v) ?? null;
-  emit('select', found);
+  emit("update:modelValue", v);
+  const found = (items.value ?? []).find((it) => it.codEndereco === v) ?? null;
+  emit("select", found);
 });
 
 // items formatados para exibir texto e valor (id)
 const itemsForSelect = computed(() => {
-  return (items.value ?? []).map(v => ({
+  return (items.value ?? []).map((v) => ({
     text: `${v.logradouro}, Nº ${v.numero}, ${v.bairro} - ${v.cidade}, ${v.estado} (${v.cep})`,
     value: v.codEndereco,
     // mantenha referência à entidade caso precise mais dados
@@ -59,19 +56,13 @@ const itemsForSelect = computed(() => {
 
 /* Atualiza o v-model do autocomplete (mantido para compatibilidade) */
 function updateValue(val: any) {
-  emit('update:modelValue', val);
+  emit("update:modelValue", val);
 }
 
 const onEnderecoSaved = async () => {
   // Recarregar a lista de endereços
-  items.value = await enderecoService.list().then((res: { data: any; }) => {
-    if (res?.data) {
-      return res.data;
-    }
-    
-    return [];
-  });
-  
+  items.value = await enderecoService.list();
+
   dialog.value = false;
 };
 </script>

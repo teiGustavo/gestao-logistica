@@ -1,3 +1,121 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import DefaultLayout from "@/layouts/DefaultLayout.vue";
+
+import { usuarioService } from "@/services/UsuarioService";
+
+// ROUTER
+const route = useRoute();
+const router = useRouter();
+const id = route.params.id;
+
+// CAMPOS
+const codUsuario = ref(0);
+const apelido = ref("");
+const senha = ref("");
+const nomeCompleto = ref("");
+const role = ref(null);
+const ativo = ref(false);
+const criadoEm = ref("");
+
+// LISTA ROLE (PADRÃO)
+const roles = ref(["admin", "usuario", "gerente", "operador"]);
+
+// ERROS
+const apelidoError = ref(false);
+const senhaError = ref(false);
+const nomeError = ref(false);
+const roleError = ref(false);
+
+// SNACKBAR
+const snackbar = ref(false);
+
+// VALIDATIONS
+function validateApelido() {
+  apelidoError.value = apelido.value.trim() === "";
+  return !apelidoError.value;
+}
+
+function validateSenha() {
+  senhaError.value = senha.value.trim() === "";
+  return !senhaError.value;
+}
+
+function validateNome() {
+  nomeError.value = nomeCompleto.value.trim() === "";
+  return !nomeError.value;
+}
+
+function validateRole() {
+  roleError.value = role.value === null;
+  return !roleError.value;
+}
+
+// LOAD
+onMounted(async () => {
+  // EDITAR
+  if (id) {
+    const d = await usuarioService.get(Number(id));
+    if (d) {
+      codUsuario.value = d.codUsuario ?? 0;
+      apelido.value = d.apelido ?? "";
+      senha.value = d.senha ?? "";
+      nomeCompleto.value = d.nome_completo ?? "";
+      role.value = d.role ?? null;
+      ativo.value = d.ativo ?? false;
+      criadoEm.value = d.criadoEm?.substring(0, 10) ?? "";
+    }
+  }
+
+  // CRIAR
+  else {
+    // não usar next-id; manter codUsuario como 0 e definir criadoEm
+    codUsuario.value = 0;
+    criadoEm.value = new Date().toISOString().substring(0, 10);
+  }
+});
+
+// CLEAR FORM
+function clearForm() {
+  codUsuario.value = 0;
+  apelido.value = "";
+  senha.value = "";
+  nomeCompleto.value = "";
+  role.value = null;
+  ativo.value = false;
+  criadoEm.value = new Date().toISOString().substring(0, 10);
+}
+
+// SAVE
+async function save() {
+  if (!validateApelido()) return;
+  if (!validateSenha()) return;
+  if (!validateNome()) return;
+  if (!validateRole()) return;
+
+  const payload = {
+    codUsuario: codUsuario.value,
+    apelido: apelido.value,
+    senha: senha.value,
+    nome_completo: nomeCompleto.value,
+    role: role.value,
+    ativo: ativo.value,
+    criadoEm: criadoEm.value,
+  };
+
+  if (id) await usuarioService.update(Number(id), payload);
+  else await usuarioService.create(payload);
+
+  clearForm();
+  snackbar.value = true;
+
+  if (id) {
+    router.push({ name: 'usuario' });
+  }
+}
+</script>
+
 <template>
   <DefaultLayout>
     <v-container>
@@ -89,7 +207,7 @@
               Salvar
             </v-btn>
 
-            <v-btn class="mt-4 ml-2" color="secondary" @click="router.push('/Usuario')">
+            <v-btn class="mt-4 ml-2" color="secondary" @click="router.push({ name: 'usuario' })">
               Cancelar
             </v-btn>
 
@@ -109,128 +227,3 @@
     </div>
   </DefaultLayout>
 </template>
-
-<script setup lang="ts">
-import DefaultLayout from "@/layouts/DefaultLayout.vue";
-import { ref, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
-
-import svc from "@/services/UsuarioService";
-
-// ROUTER
-const route = useRoute();
-const router = useRouter();
-const id = route.params.id;
-
-// CAMPOS
-const codUsuario = ref(0);
-const apelido = ref("");
-const senha = ref("");
-const nomeCompleto = ref("");
-const role = ref(null);
-const ativo = ref(false);
-const criadoEm = ref("");
-
-// LISTA ROLE (PADRÃO)
-const roles = ref([
-  "admin",
-  "usuario",
-  "gerente",
-  "operador"
-]);
-
-// ERROS
-const apelidoError = ref(false);
-const senhaError = ref(false);
-const nomeError = ref(false);
-const roleError = ref(false);
-
-// SNACKBAR
-const snackbar = ref(false);
-
-// VALIDATIONS
-function validateApelido() {
-  apelidoError.value = apelido.value.trim() === "";
-  return !apelidoError.value;
-}
-
-function validateSenha() {
-  senhaError.value = senha.value.trim() === "";
-  return !senhaError.value;
-}
-
-function validateNome() {
-  nomeError.value = nomeCompleto.value.trim() === "";
-  return !nomeError.value;
-}
-
-function validateRole() {
-  roleError.value = role.value === null;
-  return !roleError.value;
-}
-
-// LOAD
-onMounted(async () => {
-  // EDITAR
-  if (id) {
-    const res = await svc.get(Number(id));
-    if (res?.data) {
-      const d = res.data;
-
-      codUsuario.value = d.codUsuario ?? 0;
-      apelido.value = d.apelido ?? "";
-      senha.value = d.senha ?? "";
-      nomeCompleto.value = d.nome_completo ?? "";
-      role.value = d.role ?? null;
-      ativo.value = d.ativo ?? false;
-      criadoEm.value = d.criadoEm?.substring(0, 10) ?? "";
-    }
-  }
-
-  // CRIAR
-  else {
-    // não usar next-id; manter codUsuario como 0 e definir criadoEm
-    codUsuario.value = 0;
-    criadoEm.value = new Date().toISOString().substring(0, 10);
-  }
-});
-
-// CLEAR FORM
-function clearForm() {
-  codUsuario.value = 0;
-  apelido.value = "";
-  senha.value = "";
-  nomeCompleto.value = "";
-  role.value = null;
-  ativo.value = false;
-  criadoEm.value = new Date().toISOString().substring(0, 10);
-}
-
-// SAVE
-async function save() {
-  if (!validateApelido()) return;
-  if (!validateSenha()) return;
-  if (!validateNome()) return;
-  if (!validateRole()) return;
-
-  const payload = {
-    codUsuario: codUsuario.value,
-    apelido: apelido.value,
-    senha: senha.value,
-    nome_completo: nomeCompleto.value,
-    role: role.value,
-    ativo: ativo.value,
-    criadoEm: criadoEm.value
-  };
-
-  if (id) await svc.update(Number(id), payload);
-  else await svc.create(payload);
-
-  clearForm();
-  snackbar.value = true;
-
-  if (id) {
-    router.push("/Usuario");
-  }
-}
-</script>

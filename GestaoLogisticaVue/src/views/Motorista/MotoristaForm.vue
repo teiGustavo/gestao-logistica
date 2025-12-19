@@ -83,7 +83,7 @@
             </v-row>
 
             <v-btn color="primary" type="submit" class="mt-4">Salvar</v-btn>
-            <v-btn class="mt-4 ml-2" color="secondary" @click="router.push('/Motorista')">
+            <v-btn class="mt-4 ml-2" color="secondary" @click="router.push({ name: 'motorista' })">
               Cancelar
             </v-btn>
           </v-form>
@@ -104,12 +104,13 @@
 </template>
 
 <script setup lang="ts">
-import DefaultLayout from "@/layouts/DefaultLayout.vue";
-import TransportadoraAutocomplete from '@/components/TransportadoraAutocomplete.vue';
-import { ref, onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import TransportadoraAutocomplete from "@/components/TransportadoraAutocomplete.vue";
+import DefaultLayout from "@/layouts/DefaultLayout.vue";
 
-import svc from "@/services/MotoristaService";
+import { motoristaService } from "@/services/MotoristaService";
+
 // transportadoraSvc handled by component
 
 // ROUTER
@@ -151,15 +152,14 @@ function maskTelefone(value: string) {
 
   if (v.length <= 2) return `(${v}`;
   if (v.length <= 6) return `(${v.slice(0, 2)}) ${v.slice(2)}`;
-  if (v.length <= 10)
-    return `(${v.slice(0, 2)}) ${v.slice(2, 6)}-${v.slice(6)}`;
+  if (v.length <= 10) return `(${v.slice(0, 2)}) ${v.slice(2, 6)}-${v.slice(6)}`;
 
   return `(${v.slice(0, 2)}) ${v.slice(2, 3)} ${v.slice(3, 7)}-${v.slice(7)}`;
 }
 
 function maskCNH(value: string) {
   if (!value) return "";
-  let v = value.replace(/\D/g, "").slice(0, 11);
+  const v = value.replace(/\D/g, "").slice(0, 11);
   return v;
 }
 
@@ -167,10 +167,8 @@ function maskCNH(value: string) {
 onMounted(async () => {
   // EDITAR
   if (id) {
-    const res = await svc.get(Number(id));
-    if (res?.data) {
-      const d = res.data;
-
+    const d = await motoristaService.get(Number(id));
+    if (d) {
       codMotorista.value = d.codMotorista ?? 0;
       nome.value = d.nome ?? "";
       cnh.value = maskCNH(d.cnh ?? "");
@@ -203,20 +201,20 @@ async function save() {
     telefone: telefone.value,
     codTransportadora: codTransportadora.value,
     ativo: ativo.value,
-    criadoEm: criadoEm.value
+    criadoEm: criadoEm.value,
   };
 
-  if (id) await svc.update(Number(id), payload);
-  else await svc.create(payload);
+  if (id) await motoristaService.update(Number(id), payload);
+  else await motoristaService.create(payload);
 
   clearForm();
   snackbar.value = true;
 
-  if (id) router.push("/Motorista");
+  if (id) router.push({ name: 'motorista' });
 }
 
 // CLEAR
-function clearForm(){
+function clearForm() {
   codMotorista.value = 0;
   nome.value = "";
   cnh.value = "";

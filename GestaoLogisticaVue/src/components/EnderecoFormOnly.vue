@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import {onMounted, ref} from "vue";
-import {useRoute, useRouter} from "vue-router";
-import svc from "@/services/EnderecoService";
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { enderecoService } from "@/services/EnderecoService";
 
 // Router / Route
 const route = useRoute();
@@ -9,9 +9,9 @@ const router = useRouter();
 const id = route.params.id;
 
 // Emit event when cancel button is clicked
-const emit = defineEmits<{ 
-  (e: 'cancel'): void,
-  (e: 'saved'): void
+const emit = defineEmits<{
+  (e: "cancel"): void;
+  (e: "saved"): void;
 }>();
 
 // Campos
@@ -77,22 +77,21 @@ function validateEstado() {
 // ---------------- LOAD ----------------
 
 onMounted(async () => {
-
   // (Endereço não usa autocomplete de outra tabela, então NÃO tem lista para carregar)
 
   // EDITAR
   if (id) {
-    const res = await svc.get(Number(id));
-    if (res?.data) {
-      codEndereco.value = res.data.codEndereco ?? 0;
-      logradouro.value = res.data.logradouro ?? "";
-      numero.value = res.data.numero ?? "";
-      complemento.value = res.data.complemento ?? "";
-      bairro.value = res.data.bairro ?? "";
-      cep.value = maskCep(res.data.cep ?? "");
-      cidade.value = res.data.cidade ?? "";
-      estado.value = res.data.estado ?? "";
-      criadoEm.value = res.data.criadoEm?.substring(0, 10) ?? "";
+    const d = await enderecoService.get(Number(id));
+    if (d) {
+      codEndereco.value = d.codEndereco ?? 0;
+      logradouro.value = d.logradouro ?? "";
+      numero.value = d.numero ?? "";
+      complemento.value = d.complemento ?? "";
+      bairro.value = d.bairro ?? "";
+      cep.value = maskCep(d.cep ?? "");
+      cidade.value = d.cidade ?? "";
+      estado.value = d.estado ?? "";
+      criadoEm.value = d.criadoEm?.substring(0, 10) ?? "";
     }
   }
 
@@ -101,7 +100,6 @@ onMounted(async () => {
     criadoEm.value = new Date().toISOString().substring(0, 10);
   }
 });
-
 
 // ---------------- SAVE ----------------
 
@@ -131,7 +129,7 @@ async function save() {
     numero: numero.value,
     complemento: complemento.value,
     bairro: bairro.value,
-    cep: cep.value.replace('-', ''),
+    cep: cep.value.replace("-", ""),
     cidade: cidade.value,
     estado: estado.value,
     criadoEm: criadoEm.value,
@@ -139,22 +137,22 @@ async function save() {
 
   if (id) {
     payload.codEndereco = Number(id);
-    await svc.update(id, payload);
+    await enderecoService.update(Number(id), payload);
   } else {
-    await svc.create(payload);
+    await enderecoService.create(payload);
   }
-  
+
   clearForm();
-  emit('saved');
-  
+  emit("saved");
+
   if (id) {
-    router.push('/Endereco');
+    router.push({ name: 'endereco' });
   }
 }
 
 // Emitir evento de cancelamento para o componente pai
 function onCancel() {
-  emit('cancel');
+  emit("cancel");
 }
 </script>
 

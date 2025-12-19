@@ -1,35 +1,54 @@
 ﻿<script setup lang="ts">
-import { onMounted, shallowRef, ref, computed, watch } from 'vue';
-import TransportadoraForm from '../views/Transportadora/TransportadoraForm.vue';
-import { Transportadora } from "../services/TransportadoraService";
-import transportadoraService from "../services/TransportadoraService";
+import { computed, onMounted, ref, shallowRef, watch } from "vue";
+import type { Transportadora } from "@/services/TransportadoraService";
+import { transportadoraService } from "@/services/TransportadoraService";
+import TransportadoraForm from "@/views/Transportadora/TransportadoraForm.vue";
 
 const props = defineProps({
   modelValue: [String, Number, Object],
-  itemTitle: { type: String, default: 'text' },
-  itemValue: { type: String, default: 'value' },
+  itemTitle: { type: String, default: "text" },
+  itemValue: { type: String, default: "value" },
   error: Boolean,
   errorMessages: String,
-  label: { type: String, default: 'Filtrar Transportadora...' },
+  label: { type: String, default: "Filtrar Transportadora..." },
 });
 
 const items = ref<Transportadora[]>();
 const dialog = shallowRef(false);
 const internalValue = ref<any>(props.modelValue ?? null);
-const emit = defineEmits(['update:modelValue', 'select']);
+const emit = defineEmits(["update:modelValue", "select"]);
 
-watch(() => props.modelValue, (v) => { internalValue.value = v; });
+watch(
+  () => props.modelValue,
+  (v) => {
+    internalValue.value = v;
+  },
+);
 watch(internalValue, (v) => {
-  emit('update:modelValue', v);
-  const found = (items.value ?? []).find(it => it.codTransportadora === v) ?? null;
-  emit('select', found);
+  emit("update:modelValue", v);
+  const found = (items.value ?? []).find((it) => it.codTransportadora === v) ?? null;
+  emit("select", found);
 });
 
-const itemsForSelect = computed(() => (items.value ?? []).map(v => ({ text: `${v.nome_fantasia ?? v.cnpj ?? 'Transportadora'}`, value: v.codTransportadora, raw: v })));
-function updateValue(val: any) { emit('update:modelValue', val); }
-async function loadItems() { items.value = await transportadoraService.list().then((res: any) => res?.data ?? []); }
-watch(dialog, (v) => { if (!v) loadItems(); });
-onMounted(async () => { await loadItems(); });
+const itemsForSelect = computed(() =>
+  (items.value ?? []).map((v) => ({
+    text: `${v.nome_fantasia ?? v.cnpj ?? "Transportadora"}`,
+    value: v.codTransportadora,
+    raw: v,
+  })),
+);
+function updateValue(val: any) {
+  emit("update:modelValue", val);
+}
+async function loadItems() {
+  items.value = await transportadoraService.list();
+}
+watch(dialog, (v) => {
+  if (!v) loadItems();
+});
+onMounted(async () => {
+  await loadItems();
+});
 </script>
 <template>
   <v-autocomplete

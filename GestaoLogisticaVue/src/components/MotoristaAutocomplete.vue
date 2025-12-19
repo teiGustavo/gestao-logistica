@@ -1,20 +1,49 @@
 ﻿<script setup lang="ts">
-import { onMounted, shallowRef, ref, computed, watch } from 'vue';
-import MotoristaForm from '@/views/Motorista/MotoristaForm.vue';
-import { Motorista } from "@/services/MotoristaService";
-import motoristaService from "@/services/MotoristaService";
+import { computed, onMounted, ref, shallowRef, watch } from "vue";
+import type { Motorista } from "@/services/MotoristaService";
+import { motoristaService } from "@/services/MotoristaService";
+import MotoristaForm from "@/views/Motorista/MotoristaForm.vue";
 
-const props = defineProps({ modelValue: [String, Number, Object], itemTitle: { type: String, default: 'text' }, itemValue: { type: String, default: 'value' }, error: Boolean, errorMessages: String, label: { type: String, default: 'Filtrar Motorista...' }, });
+const props = defineProps({
+  modelValue: [String, Number, Object],
+  itemTitle: { type: String, default: "text" },
+  itemValue: { type: String, default: "value" },
+  error: Boolean,
+  errorMessages: String,
+  label: { type: String, default: "Filtrar Motorista..." },
+});
 const items = ref<Motorista[]>();
 const dialog = shallowRef(false);
 const internalValue = ref<any>(props.modelValue ?? null);
-const emit = defineEmits(['update:modelValue', 'select']);
-watch(() => props.modelValue, (v) => { internalValue.value = v; });
-watch(internalValue, (v) => { emit('update:modelValue', v); const found = (items.value ?? []).find(it => it.codMotorista === v) ?? null; emit('select', found); });
-const itemsForSelect = computed(() => (items.value ?? []).map(v => ({ text: `${v.nome ?? 'Motorista'} — ${v.telefone ?? ''}`, value: v.codMotorista, raw: v })));
-function updateValue(val: any) { emit('update:modelValue', val); }
-const onSaved = async () => { items.value = await motoristaService.list().then((res: any) => res?.data ?? []); dialog.value = false; };
-onMounted(async () => { items.value = await motoristaService.list().then((res: any) => res?.data ?? []); });
+const emit = defineEmits(["update:modelValue", "select"]);
+watch(
+  () => props.modelValue,
+  (v) => {
+    internalValue.value = v;
+  },
+);
+watch(internalValue, (v) => {
+  emit("update:modelValue", v);
+  const found = (items.value ?? []).find((it) => it.codMotorista === v) ?? null;
+  emit("select", found);
+});
+const itemsForSelect = computed(() =>
+  (items.value ?? []).map((v) => ({
+    text: `${v.nome ?? "Motorista"} — ${v.telefone ?? ""}`,
+    value: v.codMotorista,
+    raw: v,
+  })),
+);
+function updateValue(val: any) {
+  emit("update:modelValue", val);
+}
+const onSaved = async () => {
+  items.value = await motoristaService.list();
+  dialog.value = false;
+};
+onMounted(async () => {
+  items.value = await motoristaService.list();
+});
 </script>
 <template>
   <v-autocomplete :label="label" :items="itemsForSelect" :item-title="itemTitle" :item-value="itemValue" :error="error" :error-messages="errorMessages" :menu-props="{ closeOnContentClick: false }" no-data-text="Nenhum motorista encontrado." clearable v-model="internalValue" @update:modelValue="updateValue">
@@ -32,4 +61,3 @@ onMounted(async () => { items.value = await motoristaService.list().then((res: a
     </v-card>
   </v-dialog>
 </template>
-

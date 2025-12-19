@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/authStore';
-import Sidebar from '../components/Sidebar.vue'
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/authStore";
+import Sidebar from "@/components/Sidebar.vue";
 
 const router = useRouter();
 const store = useAuthStore();
 
 const logout = () => {
   store.logout();
-  router.push('/login');
-}
+  router.push({ name: 'login' });
+};
 
-const goDashboard = () => router.push('/dashboard');
-const goAbout = () => router.push('/about');
+const goDashboard = () => router.push({ name: 'dashboard' });
+const goAbout = () => router.push("/about");
 </script>
 
 <template>

@@ -1,74 +1,9 @@
-<template>
-  <DefaultLayout>
-    <v-container>
-      <v-card>
-        <v-card-title class="text-h5"
-          >{{ id ? "Editar" : "Criar" }} Rota</v-card-title
-        >
-        <v-card-text>
-          <v-form @submit.prevent="save">
-            <v-row>
-
-              <!-- CÓDIGO ROTA -->
-              <v-col cols="12" md="6" v-if="id"
-                ><v-text-field label="CodRota" v-model="codRota" type="number" disabled
-              /></v-col>
-
-              <!-- ENDEREÇO ORIGEM (AUTOCOMPLETE) -->
-              <v-col cols="12" md="6">
-                <EnderecoAutocomplete v-model="origem" label="Filtrar Endereço de Origem..." />
-              </v-col>
-
-              <!-- ENDEREÇO DESTINO (AUTOCOMPLETE) -->
-              <v-col cols="12" md="6">
-                <EnderecoAutocomplete v-model="destino" label="Filtrar Endereço de Destino..." />
-              </v-col>
-
-              <!-- DISTÂNCIA EM KM -->
-              <v-col cols="12" md="6"
-                ><v-text-field
-                  label="Distancia_km"
-                  v-model="distancia_km"
-                  type="number"
-              /></v-col>
-
-              <!-- CRIADO EM -->
-              <v-col cols="12" md="6"
-                ><v-text-field
-                  label="Criado Em"
-                  v-model="criadoEm"
-                  type="date"
-              /></v-col>
-            </v-row>
-            <v-btn color="primary" type="submit" class="mt-4">Salvar</v-btn>
-            <v-btn
-              color="secondary"
-              class="mt-4 ml-2"
-              @click="$router.push('/Rota')"
-              >Cancelar</v-btn
-            >
-          </v-form>
-        </v-card-text>
-      </v-card>
-    </v-container>
-
-    <div class="text-center">
-      <v-snackbar v-model="snackbar" :timeout="3000">
-        Rota {{ id ? 'atualizada' : 'cadastrada' }} com sucesso!
-
-        <template v-slot:actions>
-          <v-btn color="blue" variant="text" @click="snackbar = false">Fechar</v-btn>
-        </template>
-      </v-snackbar>
-    </div>
-  </DefaultLayout>
-</template>
 <script setup lang="ts">
-import DefaultLayout from "@/layouts/DefaultLayout.vue";
-import { ref, onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import svc from "@/services/RotaService";
 import EnderecoAutocomplete from "@/components/EnderecoAutocomplete.vue";
+import DefaultLayout from "@/layouts/DefaultLayout.vue";
+import { rotaService } from "@/services/RotaService";
 
 // ROUTER
 const route = useRoute();
@@ -125,10 +60,8 @@ function formatDate(d: string | undefined) {
 onMounted(async () => {
   // EDITAR
   if (id) {
-    const res = await svc.get(Number(id));
-    if (res?.data) {
-      const r = res.data;
-
+    const r = await rotaService.get(Number(id));
+    if (r) {
       codRota.value = r.codRota ?? 0;
       origem.value = r.origem ?? "";
       destino.value = r.destino ?? "";
@@ -169,14 +102,81 @@ async function save() {
   };
 
   if (id) {
-    await svc.update(Number(id), payload);
+    await rotaService.update(Number(id), payload);
   } else {
-    await svc.create(payload);
+    await rotaService.create(payload);
   }
 
   clearForm();
   snackbar.value = true;
 
-  if (id) router.push("/Rota");
+  if (id) router.push({ name: 'rota' });
 }
 </script>
+
+<template>
+  <DefaultLayout>
+    <v-container>
+      <v-card>
+        <v-card-title class="text-h5"
+          >{{ id ? "Editar" : "Criar" }} Rota</v-card-title
+        >
+        <v-card-text>
+          <v-form @submit.prevent="save">
+            <v-row>
+
+              <!-- CÓDIGO ROTA -->
+              <v-col cols="12" md="6" v-if="id"
+                ><v-text-field label="CodRota" v-model="codRota" type="number" disabled
+              /></v-col>
+
+              <!-- ENDEREÇO ORIGEM (AUTOCOMPLETE) -->
+              <v-col cols="12" md="6">
+                <EnderecoAutocomplete v-model="origem" label="Filtrar Endereço de Origem..." />
+              </v-col>
+
+              <!-- ENDEREÇO DESTINO (AUTOCOMPLETE) -->
+              <v-col cols="12" md="6">
+                <EnderecoAutocomplete v-model="destino" label="Filtrar Endereço de Destino..." />
+              </v-col>
+
+              <!-- DISTÂNCIA EM KM -->
+              <v-col cols="12" md="6"
+                ><v-text-field
+                  label="Distancia_km"
+                  v-model="distancia_km"
+                  type="number"
+              /></v-col>
+
+              <!-- CRIADO EM -->
+              <v-col cols="12" md="6"
+                ><v-text-field
+                  label="Criado Em"
+                  v-model="criadoEm"
+                  type="date"
+              /></v-col>
+            </v-row>
+            <v-btn color="primary" type="submit" class="mt-4">Salvar</v-btn>
+            <v-btn
+              color="secondary"
+              class="mt-4 ml-2"
+              @click="$router.push({ name: 'rota' })"
+              >Cancelar</v-btn
+            >
+          </v-form>
+        </v-card-text>
+      </v-card>
+    </v-container>
+
+    <div class="text-center">
+      <v-snackbar v-model="snackbar" :timeout="3000">
+        Rota {{ id ? 'atualizada' : 'cadastrada' }} com sucesso!
+
+        <template v-slot:actions>
+          <v-btn color="blue" variant="text" @click="snackbar = false">Fechar</v-btn>
+        </template>
+      </v-snackbar>
+    </div>
+  </DefaultLayout>
+</template>
+

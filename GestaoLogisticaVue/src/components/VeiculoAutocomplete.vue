@@ -1,21 +1,51 @@
 ﻿<script setup lang="ts">
-import { onMounted, shallowRef, ref, computed, watch } from 'vue';
-import VeiculoForm from '../views/Veiculo/VeiculoForm.vue';
-import { Veiculo } from "../services/VeiculoService";
-import veiculoService from "../services/VeiculoService";
+import { computed, onMounted, ref, shallowRef, watch } from "vue";
+import type { Veiculo } from "@/services/VeiculoService";
+import { veiculoService } from "@/services/VeiculoService";
+import VeiculoForm from "@/views/Veiculo/VeiculoForm.vue";
 
-const props = defineProps({ modelValue: [String, Number, Object], itemTitle: { type: String, default: 'text' }, itemValue: { type: String, default: 'value' }, error: Boolean, errorMessages: String, label: { type: String, default: 'Filtrar Veículo...' }, });
+const props = defineProps({
+  modelValue: [String, Number, Object],
+  itemTitle: { type: String, default: "text" },
+  itemValue: { type: String, default: "value" },
+  error: Boolean,
+  errorMessages: String,
+  label: { type: String, default: "Filtrar Veículo..." },
+});
 const items = ref<Veiculo[]>();
 const dialog = shallowRef(false);
 const internalValue = ref<any>(props.modelValue ?? null);
-const emit = defineEmits(['update:modelValue', 'select']);
-watch(() => props.modelValue, (v) => { internalValue.value = v; });
-watch(internalValue, (v) => { emit('update:modelValue', v); const found = (items.value ?? []).find(it => it.codVeiculo === v) ?? null; emit('select', found); });
-const itemsForSelect = computed(() => (items.value ?? []).map(v => ({ text: `${v.placa ?? 'Veículo'} — ${v.modelo ?? ''}`, value: v.codVeiculo, raw: v })));
-function updateValue(val: any) { emit('update:modelValue', val); }
-async function loadItems() { items.value = await veiculoService.list().then((res: any) => res?.data ?? []); }
-watch(dialog, (v) => { if (!v) loadItems(); });
-onMounted(async () => { await loadItems(); });
+const emit = defineEmits(["update:modelValue", "select"]);
+watch(
+  () => props.modelValue,
+  (v) => {
+    internalValue.value = v;
+  },
+);
+watch(internalValue, (v) => {
+  emit("update:modelValue", v);
+  const found = (items.value ?? []).find((it) => it.codVeiculo === v) ?? null;
+  emit("select", found);
+});
+const itemsForSelect = computed(() =>
+  (items.value ?? []).map((v) => ({
+    text: `${v.placa ?? "Veículo"} — ${v.modelo ?? ""}`,
+    value: v.codVeiculo,
+    raw: v,
+  })),
+);
+function updateValue(val: any) {
+  emit("update:modelValue", val);
+}
+async function loadItems() {
+  items.value = await veiculoService.list();
+}
+watch(dialog, (v) => {
+  if (!v) loadItems();
+});
+onMounted(async () => {
+  await loadItems();
+});
 </script>
 <template>
   <v-autocomplete :label="label" :items="itemsForSelect" :item-title="itemTitle" :item-value="itemValue" :error="error" :error-messages="errorMessages" :menu-props="{ closeOnContentClick: false }" no-data-text="Nenhum veículo encontrado." clearable v-model="internalValue" @update:modelValue="updateValue">

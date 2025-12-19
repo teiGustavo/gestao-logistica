@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { onMounted, ref } from "vue";
 import DefaultLayout from "@/layouts/DefaultLayout.vue";
-import { ref, onMounted } from "vue";
-import svc from "@/services/UsuarioService";
-import type { Usuario } from '@/services/UsuarioService'
+import type { Usuario } from "@/services/UsuarioService";
+import { usuarioService } from "@/services/UsuarioService";
 
 const items = ref<Usuario[]>([]);
 const headers = [
@@ -15,8 +15,7 @@ const headers = [
 ];
 
 onMounted(async () => {
-  const res = await svc.list();
-  items.value = res.data;
+  items.value = await usuarioService.list();
 });
 </script>
 
@@ -26,7 +25,7 @@ onMounted(async () => {
       <v-card>
         <v-card-title class="text-h5">Listagem de Usuários</v-card-title>
         <v-card-actions>
-          <v-btn color="primary" @click="$router.push('/Usuario/create')"
+          <v-btn color="primary" @click="$router.push({ name: 'usuario-create' })"
             >Novo Usuário</v-btn
           >
         </v-card-actions>
@@ -40,7 +39,7 @@ onMounted(async () => {
             <v-btn
               small
               color="warning"
-              @click="$router.push('/Usuario/edit/' + item.codUsuario)"
+              @click="$router.push({ name: 'usuario-edit', params: { id: item.codUsuario } })"
               >Editar</v-btn
             >
           </template>

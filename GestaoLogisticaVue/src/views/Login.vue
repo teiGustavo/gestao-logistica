@@ -1,24 +1,24 @@
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 import AuthLayout from "@/layouts/AuthLayout.vue";
-import {useAuthStore} from "@/stores/authStore.ts";
+import { useAuthStore } from "@/stores/authStore.ts";
 
 const router = useRouter();
 const authStore = useAuthStore();
 
-const apelido = ref('');
-const senha = ref('');
-const erro = ref('');
+const apelido = ref("");
+const senha = ref("");
+const erro = ref("");
 
 const login = async () => {
-  if (!await authStore.login({ apelido: apelido.value, senha: senha.value })) {
-    erro.value = 'Credenciais inválidas!';
+  if (!(await authStore.login({ apelido: apelido.value, senha: senha.value }))) {
+    erro.value = "Credenciais inválidas!";
     return;
   }
-  
-  await router.push('/dashboard');
-}
+
+  await router.push({ name: 'dashboard' });
+};
 </script>
 
 <template>

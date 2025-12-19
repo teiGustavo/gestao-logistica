@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import DefaultLayout from "@/layouts/DefaultLayout.vue";
-import EnderecoFormOnly from "@/components/EnderecoFormOnly.vue";
 import { ref } from "vue";
-import {useRoute} from "vue-router";
+import { useRoute } from "vue-router";
+import EnderecoFormOnly from "@/components/EnderecoFormOnly.vue";
+import DefaultLayout from "@/layouts/DefaultLayout.vue";
 
 const route = useRoute();
 const id = route.params.id;

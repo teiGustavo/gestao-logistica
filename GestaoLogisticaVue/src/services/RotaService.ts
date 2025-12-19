@@ -1,4 +1,4 @@
-import api from "./api";
+import api from "@/services/api";
 
 export interface Rota {
   codRota: number;
@@ -8,15 +8,32 @@ export interface Rota {
   criadoEm?: string;
 }
 
+export type RotaCreatePayload = Omit<Rota, "codRota" | "criadoEm">;
+
 const base = "/rotas";
 
-export default {
-  list: (params?: Record<string, unknown>) => api.get(base, { params }),
-  get: (id: number) => api.get(`${base}/${id}`),
-  create: (payload: Rota) => api.post(base, payload),
-  update: (arg1: any, arg2?: any) => {
-    if (typeof arg1 === 'number') return api.put(`${base}/${arg1}`, arg2);
-    return api.put(base, arg1);
+export const rotaService = {
+  async list(params?: Record<string, unknown>): Promise<Rota[]> {
+    const { data } = await api.get<Rota[]>(base, { params });
+    return data;
   },
-  remove: (id: number) => api.delete(`${base}/${id}`),
+
+  async get(id: number): Promise<Rota | null> {
+    const { data } = await api.get<Rota>(`${base}/${id}`);
+    return data;
+  },
+
+  async create(payload: RotaCreatePayload): Promise<{ id: number }> {
+    const { data } = await api.post<{ id: number }>(base, payload);
+    return data;
+  },
+
+  async update(id: number, payload: Partial<Rota>): Promise<Rota> {
+    const { data } = await api.put<Rota>(`${base}/${id}`, payload);
+    return data;
+  },
+
+  async remove(id: number): Promise<void> {
+    await api.delete(`${base}/${id}`);
+  },
 };

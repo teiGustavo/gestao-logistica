@@ -171,7 +171,7 @@
             </v-row>
 
             <v-btn color="primary" type="submit" class="mt-4">Salvar</v-btn>
-            <v-btn class="mt-4 ml-2" color="secondary" @click="router.push('/Entrega')">
+            <v-btn class="mt-4 ml-2" color="secondary" @click="router.push({ name: 'entrega' })">
               Cancelar
             </v-btn>
           </v-form>
@@ -192,21 +192,20 @@
 </template>
 
 <script setup lang="ts">
-import DefaultLayout from "@/layouts/DefaultLayout.vue";
-import ClienteAutocomplete from '@/components/ClienteAutocomplete.vue';
-import TransportadoraAutocomplete from '@/components/TransportadoraAutocomplete.vue';
-import VeiculoAutocomplete from '@/components/VeiculoAutocomplete.vue';
-import MotoristaAutocomplete from '@/components/MotoristaAutocomplete.vue';
-import RotaAutocomplete from '@/components/RotaAutocomplete.vue';
-import { ref, onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-
-import svc from "@/services/EntregaService";
-import clienteSvc from "@/services/ClienteService";
-import transportadoraSvc from "@/services/TransportadoraService";
-import veiculoSvc from "@/services/VeiculoService";
-import motoristaSvc from "@/services/MotoristaService";
-import rotaSvc from "@/services/RotaService";
+import ClienteAutocomplete from "@/components/ClienteAutocomplete.vue";
+import MotoristaAutocomplete from "@/components/MotoristaAutocomplete.vue";
+import RotaAutocomplete from "@/components/RotaAutocomplete.vue";
+import TransportadoraAutocomplete from "@/components/TransportadoraAutocomplete.vue";
+import VeiculoAutocomplete from "@/components/VeiculoAutocomplete.vue";
+import DefaultLayout from "@/layouts/DefaultLayout.vue";
+import { clienteService } from "@/services/ClienteService";
+import { entregaService } from "@/services/EntregaService";
+import { motoristaService } from "@/services/MotoristaService";
+import { rotaService } from "@/services/RotaService";
+import { transportadoraService } from "@/services/TransportadoraService";
+import { veiculoService } from "@/services/VeiculoService";
 
 const route = useRoute();
 const router = useRouter();
@@ -231,13 +230,7 @@ const volume_total_m3 = ref();
 const valor_frete = ref();
 
 const statusEntrega = ref("Pendente");
-const statusList = [
-  "Pendente",
-  "Em Rota",
-  "Em Entrega",
-  "Entregue",
-  "Cancelada"
-];
+const statusList = ["Pendente", "Em Rota", "Em Entrega", "Entregue", "Cancelada"];
 const criadoEm = ref("");
 
 // LISTAS
@@ -284,12 +277,12 @@ function maskMoney(value: string) {
   // máximo 9 dígitos (até milhões)
   v = v.slice(0, 9);
 
-  const formatted = (Number(v) / 100)
-    .toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+  const formatted = (Number(v) / 100).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+  });
 
   return "R$ " + formatted;
 }
-
 
 // ERROS
 const clienteRemetenteError = ref(false);
@@ -367,10 +360,10 @@ function validateFrete() {
 }
 
 const rules = {
-  counterPeso: (value: string) => value.length <= 9 || 'Máximo 9 dígitos.',
-  counterVolume: (value: string) => value.length <= 4 || 'Máximo 4 dígitos.',
-  counterValor: (value: string) => value.length <= 9 || 'Máximo 9 dígitos.'
-}
+  counterPeso: (value: string) => value.length <= 9 || "Máximo 9 dígitos.",
+  counterVolume: (value: string) => value.length <= 4 || "Máximo 4 dígitos.",
+  counterValor: (value: string) => value.length <= 9 || "Máximo 9 dígitos.",
+};
 
 function getEnderecoDesc(e: any) {
   if (!e) return "";
@@ -389,53 +382,40 @@ function getEnderecoDesc(e: any) {
 onMounted(async () => {
   // 🔹 CARREGAR LISTAS (autocomplete)
 
-const cli = await clienteSvc.list();
-if (cli?.data) {
-  clientes.value = cli.data.map((c: any) => ({
+  const cli = await clienteService.list();
+  clientes.value = cli.map((c: any) => ({
     codCliente: c.codCliente,
     descricao: `${c.nome} — ${c.documento ?? "Sem doc"} (${c.telefone ?? "Sem tel"})`,
   }));
-}
 
-const transp = await transportadoraSvc.list();
-if (transp?.data) {
-  transportadoras.value = transp.data.map((t: any) => ({
+  const transp = await transportadoraService.list();
+  transportadoras.value = transp.map((t: any) => ({
     codTransportadora: t.codTransportadora,
     descricao: `${t.nome_fantasia} — CNPJ: ${t.cnpj ?? "N/A"} (${t.contato ?? "Sem contato"})`,
   }));
-}
 
-const vei = await veiculoSvc.list();
-if (vei?.data) {
-  veiculos.value = vei.data.map((v: any) => ({
+  const vei = await veiculoService.list();
+  veiculos.value = vei.map((v: any) => ({
     codVeiculo: v.codVeiculo,
     descricao: `${v.placa} — ${v.modelo ?? "Modelo indef."} [${v.status}]`,
   }));
-}
 
-const mot = await motoristaSvc.list();
-if (mot?.data) {
-  motoristas.value = mot.data.map((m: any) => ({
+  const mot = await motoristaService.list();
+  motoristas.value = mot.map((m: any) => ({
     codMotorista: m.codMotorista,
     descricao: `${m.nome} — ${m.telefone ?? "Sem tel"} (${m.ativo ? "Ativo" : "Inativo"})`,
   }));
-}
 
-const rot = await rotaSvc.list();
-if (rot?.data) {
-  rotas.value = rot.data.map((r: any) => ({
+  const rot = await rotaService.list();
+  rotas.value = rot.map((r: any) => ({
     codRota: r.codRota,
     descricao: `${getEnderecoDesc(r.origem)} → ${getEnderecoDesc(r.destino)} (${r.distancia_km} km)`,
   }));
-}
-
 
   // 🔹 EDITAR
   if (id) {
-    const res = await svc.get(Number(id));
-    if (res?.data) {
-      const d = res.data;
-
+    const d = await entregaService.get(Number(id));
+    if (d) {
       codEntrega.value = d.codEntrega ?? 0;
       codigo_externo.value = d.codigo_externo ?? "";
 
@@ -465,7 +445,6 @@ if (rot?.data) {
     criadoEm.value = new Date().toISOString().substring(0, 10);
   }
 });
-
 
 // SAVE
 async function save() {
@@ -505,16 +484,15 @@ async function save() {
   };
 
   if (id) {
-    await svc.update(Number(id), payload);
+    await entregaService.update(Number(id), payload);
     snackbar.value = true;
-  }
-  else await svc.create(payload);
+  } else await entregaService.create(payload);
 
   clearForm();
   snackbar.value = true;
 
   if (id) {
-    router.push('/Entrega');
+    router.push({ name: 'entrega' });
   }
 }
 

@@ -13,9 +13,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-const name = ref('')
+import { ref } from "vue";
+
+const name = ref("");
 function sayHi() {
-  alert(`E aí ${name.value || 'usuário'}!`)
+  alert(`E aí ${name.value || "usuário"}!`);
 }
 </script>

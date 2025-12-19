@@ -1,4 +1,4 @@
-import api from "./api";
+import api from "@/services/api";
 
 export interface Produto {
   codProduto: number;
@@ -9,16 +9,32 @@ export interface Produto {
   criadoEm?: string;
 }
 
+export type ProdutoCreatePayload = Omit<Produto, "codProduto" | "criadoEm">;
+
 const base = "/produtos";
 
-export default {
-  list: (params?: Record<string, unknown>) => api.get(base, { params }),
-  get: (id: number) => api.get(`${base}/${id}`),
-  create: (payload: Produto) => api.post(base, payload),
-  update: (arg1: any, arg2?: any) => {
-    // support update(payload) or update(id, payload)
-    if (typeof arg1 === 'number') return api.put(`${base}/${arg1}`, arg2);
-    return api.put(base, arg1);
+export const produtoService = {
+  async list(params?: Record<string, unknown>): Promise<Produto[]> {
+    const { data } = await api.get<Produto[]>(base, { params });
+    return data;
   },
-  remove: (id: number) => api.delete(`${base}/${id}`),
+
+  async get(id: number): Promise<Produto | null> {
+    const { data } = await api.get<Produto>(`${base}/${id}`);
+    return data;
+  },
+
+  async create(payload: ProdutoCreatePayload): Promise<{ id: number }> {
+    const { data } = await api.post<{ id: number }>(base, payload);
+    return data;
+  },
+
+  async update(id: number, payload: Partial<Produto>): Promise<Produto> {
+    const { data } = await api.put<Produto>(`${base}/${id}`, payload);
+    return data;
+  },
+
+  async remove(id: number): Promise<void> {
+    await api.delete(`${base}/${id}`);
+  },
 };

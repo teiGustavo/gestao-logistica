@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import DefaultLayout from "@/layouts/DefaultLayout.vue";
-import {ref, onMounted} from "vue";
-import {useRoute, useRouter} from "vue-router";
-import svc from "@/services/ArmazemService";
-import enderecoSvc from "@/services/EnderecoService";
+import { useDateFormat, useNow } from "@vueuse/core";
+import { onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import EnderecoAutocomplete from "@/components/EnderecoAutocomplete.vue";
-import { useDateFormat, useNow } from '@vueuse/core';
+import DefaultLayout from "@/layouts/DefaultLayout.vue";
+import { armazemService } from "@/services/ArmazemService";
 
 const router = useRouter();
 const route = useRoute();
@@ -13,37 +12,33 @@ const id = route.params.id;
 
 const codArmazem = ref(0);
 const nome = ref("");
-const codEndereco = ref<any>(null)
+const codEndereco = ref<number|null>(null);
 
 const today = useDateFormat(useNow(), "YYYY-MM-DD").value;
 const criadoEm = ref<string>(today);
-
-const enderecos = ref([]);
 
 const nomeError = ref(false);
 const nomeErrorEnd = ref(false);
 
 const snackbar = ref(false);
 
-onMounted(async () => {
-  // Carregar lista de endereços
-  const end = await enderecoSvc.list();
-  if (end?.data) {
-    enderecos.value = end.data.map((x: any) => ({
-      codEndereco: x.codEndereco,
-      descricao: `${x.logradouro}, ${x.numero} - ${x.bairro} (${x.cep})`,
-    }));
+watch(snackbar, (newVal, oldVal) => {
+  // quando a snackbar estava aberta e passou a fechada
+  if (oldVal && !newVal) {
+    if (id) router.push({ name: 'armazem' });
   }
+});
 
+onMounted(async () => {
   // EDITAR
   if (id) {
-    const res = await svc.get(Number(id));
-    
-    if (res?.data) {
-      codArmazem.value = res.data.codArmazem;
-      nome.value = res.data.nome;
-      codEndereco.value = res.data.codEndereco;
-      criadoEm.value = res.data.criadoEm.substring(0, 10);
+    const res = await armazemService.get(Number(id));
+
+    if (res) {
+      codArmazem.value = res.codArmazem;
+      nome.value = res.nome;
+      codEndereco.value = res.codEndereco;
+      criadoEm.value = res.criadoEm.substring(0, 10);
     }
   }
   // CRIAR → pegar próximo ID
@@ -82,16 +77,16 @@ async function save() {
     criadoEm: criadoEm.value,
   };
 
-  if (id) await svc.update(id, payload);
-  else await svc.create(payload);
-  
+  if (id) await armazemService.update(id, payload);
+  else await armazemService.create(payload);
+
   clearForm();
   snackbar.value = true;
-  
-  if (id) {
-    router.push('/Armazem');
-  }
 }
+
+const onCancel = () => {
+  if (id) router.push({ name: 'armazem' });
+};
 </script>
 
 <template>
@@ -145,6 +140,7 @@ async function save() {
             <v-btn
               color="secondary"
               class="mt-4 ml-2"
+              @click="onCancel"
             >
               Cancelar
             </v-btn>
@@ -159,6 +155,8 @@ async function save() {
           :timeout="3000"
       >
         Armazém {{ id ? 'atualizado' : 'cadastrado' }} com sucesso!
+        <br>
+        <small v-if="id">Você será redirecionado automaticamente.</small>
 
         <template v-slot:actions>
           <v-btn

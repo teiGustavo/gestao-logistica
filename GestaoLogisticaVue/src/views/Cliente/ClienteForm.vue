@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import DefaultLayout from "@/layouts/DefaultLayout.vue";
-import { ref, onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import svc from "@/services/ClienteService";
-import enderecoSvc from "@/services/EnderecoService";
 import EnderecoAutocomplete from "@/components/EnderecoAutocomplete.vue";
+import DefaultLayout from "@/layouts/DefaultLayout.vue";
+import { clienteService } from "@/services/ClienteService";
+import { enderecoService } from "@/services/EnderecoService";
 
 const route = useRoute();
 const router = useRouter();
@@ -63,8 +63,7 @@ function maskPhone(value: string) {
 
   if (v.length <= 2) return `(${v}`;
   if (v.length <= 6) return `(${v.slice(0, 2)}) ${v.slice(2)}`;
-  if (v.length <= 10)
-    return `(${v.slice(0, 2)}) ${v.slice(2, 6)}-${v.slice(6)}`;
+  if (v.length <= 10) return `(${v.slice(0, 2)}) ${v.slice(2, 6)}-${v.slice(6)}`;
 
   return `(${v.slice(0, 2)}) ${v.slice(2, 3)} ${v.slice(3, 7)}-${v.slice(7)}`;
 }
@@ -98,31 +97,30 @@ function validateEndereco() {
 }
 
 const rules = {
-  counterDocumento: (value: string) => value.length <= 18 || 'Máximo 18 dígitos.',
-  counterTelefone: (value: string) => value.length <= 11 || 'Máximo 11 dígitos.'
-}
+  counterDocumento: (value: string) => value.length <= 18 || "Máximo 18 dígitos.",
+  counterTelefone: (value: string) => value.length <= 11 || "Máximo 11 dígitos.",
+};
+
 // Carregamento inicial
 onMounted(async () => {
   // Carregar lista de endereços (mesmo padrão do modelo)
-  const end = await enderecoSvc.list();
-  if (end?.data) {
-    enderecos.value = end.data.map((x: any) => ({
-      codEndereco: x.codEndereco,
-      descricao: `${x.logradouro}, ${x.numero} - ${x.bairro} (${x.cep})`,
-    }));
-  }
+  const end = await enderecoService.list();
+  enderecos.value = end.map((x: any) => ({
+    codEndereco: x.codEndereco,
+    descricao: `${x.logradouro}, ${x.numero} - ${x.bairro} (${x.cep})`,
+  }));
 
   // EDITAR (exatamente como o modelo faz)
   if (id) {
-    const res = await svc.get(Number(id));
-    if (res?.data) {
-      codCliente.value = res.data.codCliente;
-      nome.value = res.data.nome;
-      documento.value = res.data.documento;
-      email.value = res.data.email;
-      telefone.value = res.data.telefone;
-      codEndereco.value = res.data.codEndereco;
-      criadoEm.value = res.data.criadoEm.substring(0, 10);
+    const d = await clienteService.get(Number(id));
+    if (d) {
+      codCliente.value = d.codCliente ?? 0;
+      nome.value = d.nome ?? "";
+      documento.value = d.documento ?? "";
+      email.value = d.email ?? "";
+      telefone.value = d.telefone ?? "";
+      codEndereco.value = d.codEndereco ?? null;
+      criadoEm.value = d.criadoEm?.substring(0, 10) ?? "";
     }
   }
 
@@ -160,14 +158,14 @@ async function save() {
     criadoEm: criadoEm.value,
   };
 
-  if (id) await svc.update(id, payload);
-  else await svc.create(payload);
+  if (id) await clienteService.update(id, payload);
+  else await clienteService.create(payload);
 
   clearForm();
   snackbar.value = true;
 
   if (id) {
-    router.push('/Cliente');
+    router.push({ name: 'cliente' });
   }
 }
 </script>
@@ -258,7 +256,7 @@ async function save() {
             <v-btn
               color="secondary"
               class="mt-4 ml-2"
-              @click="$router.push('/Cliente')"
+              @click="$router.push({ name: 'cliente' })"
             >
               Cancelar
             </v-btn>

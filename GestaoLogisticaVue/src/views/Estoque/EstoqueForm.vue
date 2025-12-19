@@ -1,3 +1,143 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import ArmazemAutocomplete from "@/components/ArmazemAutocomplete.vue";
+import ProdutoAutocomplete from "@/components/ProdutoAutocomplete.vue";
+import DefaultLayout from "@/layouts/DefaultLayout.vue";
+import { armazemService } from "@/services/ArmazemService";
+import { estoqueService } from "@/services/EstoqueService";
+import { produtoService } from "@/services/ProdutoService";
+
+const route = useRoute();
+const router = useRouter();
+const id = route.params.id;
+
+// CAMPOS
+const codEstoque = ref(0);
+const codArmazem = ref(null);
+const codProduto = ref(null);
+const quantidade = ref(null);
+const lote = ref("");
+const dataEntrada = ref("");
+const atualizadoEm = ref("");
+
+// SNACKBAR
+const snackbar = ref(false);
+
+// LISTAS
+const armazens = ref([]);
+const produtos = ref([]);
+
+// ERROS
+const armazemError = ref(false);
+const produtoError = ref(false);
+const quantidadeError = ref(false);
+const loteError = ref(false);
+const dataEntradaError = ref(false);
+
+// VALIDATIONS
+function validateArmazem() {
+  armazemError.value = codArmazem.value === null;
+  return !armazemError.value;
+}
+
+function validateProduto() {
+  produtoError.value = codProduto.value === null;
+  return !produtoError.value;
+}
+
+function validateQuantidade() {
+  quantidadeError.value = quantidade.value === null;
+  return !quantidadeError.value;
+}
+
+function validateLote() {
+  loteError.value = !lote.value;
+  return !loteError.value;
+}
+
+function validateDataEntrada() {
+  dataEntradaError.value = !dataEntrada.value;
+  return !dataEntradaError.value;
+}
+
+// LOAD DATA
+onMounted(async () => {
+  // ARMAZÉNS
+  const arm = await armazemService.list();
+  armazens.value = arm.map((x: any) => ({
+    codArmazem: x.codArmazem,
+    descricao: `Armazém #${x.codArmazem} - ${x.nome ?? "Sem nome"}`,
+  }));
+
+  // PRODUTOS
+  const prod = await produtoService.list();
+  produtos.value = prod.map((x: any) => ({
+    codProduto: x.codProduto,
+    descricao: `${x.descricao ?? "Produto"} (${x.codProduto})`,
+  }));
+
+  // EDITAR
+  if (id) {
+    const d = await estoqueService.get(Number(id));
+    if (d) {
+      codEstoque.value = d.codEstoque ?? 0;
+      codArmazem.value = d.codArmazem ?? null;
+      codProduto.value = d.codProduto ?? null;
+      quantidade.value = d.quantidade ?? null;
+      lote.value = d.lote ?? "";
+      dataEntrada.value = d.data_entrada?.substring(0, 10) ?? "";
+      atualizadoEm.value = d.atualizado_em?.substring(0, 10) ?? "";
+    }
+  }
+
+  // CRIAR → sem getNextId
+  else {
+    codEstoque.value = 0;
+    dataEntrada.value = new Date().toISOString().substring(0, 10);
+    atualizadoEm.value = new Date().toISOString().substring(0, 10);
+  }
+});
+
+// SAVE
+async function save() {
+  if (!validateArmazem()) return;
+  if (!validateProduto()) return;
+  if (!validateQuantidade()) return;
+  if (!validateLote()) return;
+  if (!validateDataEntrada()) return;
+
+  const payload = {
+    codEstoque: codEstoque.value,
+    codArmazem: codArmazem.value ?? undefined,
+    codProduto: codProduto.value ?? undefined,
+    quantidade: quantidade.value ?? 0,
+    lote: lote.value ?? "",
+    data_entrada: dataEntrada.value,
+    atualizado_em: atualizadoEm.value,
+  };
+
+  if (id) await estoqueService.update(Number(id), payload);
+  else await estoqueService.create(payload);
+
+  clearForm();
+  snackbar.value = true;
+
+  if (id) router.push({ name: 'estoque' });
+}
+
+// CLEAR
+function clearForm() {
+  codEstoque.value = 0;
+  codArmazem.value = null;
+  codProduto.value = null;
+  quantidade.value = null;
+  lote.value = "";
+  dataEntrada.value = new Date().toISOString().substring(0, 10);
+  atualizadoEm.value = new Date().toISOString().substring(0, 10);
+}
+</script>
+
 <template>
   <DefaultLayout>
     <v-container>
@@ -88,7 +228,7 @@
             </v-row>
 
             <v-btn color="primary" type="submit" class="mt-4">Salvar</v-btn>
-            <v-btn class="mt-4 ml-2" color="secondary" @click="router.push('/Estoque')">
+            <v-btn class="mt-4 ml-2" color="secondary" @click="router.push({ name: 'estoque' })">
               Cancelar
             </v-btn>
           </v-form>
@@ -107,151 +247,3 @@
     </div>
   </DefaultLayout>
 </template>
-
-<script setup lang="ts">
-import DefaultLayout from "@/layouts/DefaultLayout.vue";
-import ArmazemAutocomplete from '@/components/ArmazemAutocomplete.vue';
-import ProdutoAutocomplete from '@/components/ProdutoAutocomplete.vue';
-import { ref, onMounted } from "vue";
-import { useRoute, useRouter } from "vue-router";
-
-import svc from "@/services/EstoqueService";
-import armazemSvc from "@/services/ArmazemService";
-import produtoSvc from "@/services/ProdutoService";
-
-const route = useRoute();
-const router = useRouter();
-const id = route.params.id;
-
-// CAMPOS
-const codEstoque = ref(0);
-const codArmazem = ref(null);
-const codProduto = ref(null);
-const quantidade = ref(null);
-const lote = ref("");
-const dataEntrada = ref("");
-const atualizadoEm = ref("");
-
-// SNACKBAR
-const snackbar = ref(false);
-
-// LISTAS
-const armazens = ref([]);
-const produtos = ref([]);
-
-// ERROS
-const armazemError = ref(false);
-const produtoError = ref(false);
-const quantidadeError = ref(false);
-const loteError = ref(false);
-const dataEntradaError = ref(false);
-
-// VALIDATIONS
-function validateArmazem() {
-  armazemError.value = codArmazem.value === null;
-  return !armazemError.value;
-}
-
-function validateProduto() {
-  produtoError.value = codProduto.value === null;
-  return !produtoError.value;
-}
-
-function validateQuantidade() {
-  quantidadeError.value = quantidade.value === null;
-  return !quantidadeError.value;
-}
-
-function validateLote() {
-  loteError.value = !lote.value;
-  return !loteError.value;
-}
-
-function validateDataEntrada() {
-  dataEntradaError.value = !dataEntrada.value;
-  return !dataEntradaError.value;
-}
-
-// LOAD DATA
-onMounted(async () => {
-
-  // ARMAZÉNS
-  const arm = await armazemSvc.list();
-  if (arm?.data) {
-    armazens.value = arm.data.map((x: any) => ({
-      codArmazem: x.codArmazem,
-      descricao: `Armazém #${x.codArmazem} - ${x.nome ?? "Sem nome"}`
-    }));
-  }
-
-  // PRODUTOS
-  const prod = await produtoSvc.list();
-  if (prod?.data) {
-    produtos.value = prod.data.map((x: any) => ({
-      codProduto: x.codProduto,
-      descricao: `${x.descricao ?? "Produto"} (${x.codProduto})`
-    }));
-  }
-
-  // EDITAR
-  if (id) {
-    const r = await svc.get(Number(id));
-    if (r?.data) {
-      const d = r.data;
-
-      codEstoque.value = d.codEstoque ?? 0;
-      codArmazem.value = d.codArmazem ?? null;
-      codProduto.value = d.codProduto ?? null;
-      quantidade.value = d.quantidade ?? null;
-      lote.value = d.lote ?? "";
-      dataEntrada.value = d.data_entrada?.substring(0, 10) ?? "";
-      atualizadoEm.value = d.atualizado_em?.substring(0, 10) ?? "";
-    }
-  }
-
-  // CRIAR → sem getNextId
-  else {
-    codEstoque.value = 0;
-    dataEntrada.value = new Date().toISOString().substring(0, 10);
-    atualizadoEm.value = new Date().toISOString().substring(0, 10);
-  }
-});
-
-// SAVE
-async function save() {
-  if (!validateArmazem()) return;
-  if (!validateProduto()) return;
-  if (!validateQuantidade()) return;
-  if (!validateLote()) return;
-  if (!validateDataEntrada()) return;
-
-  const payload = {
-    codEstoque: codEstoque.value,
-    codArmazem: codArmazem.value ?? undefined,
-    codProduto: codProduto.value ?? undefined,
-    quantidade: quantidade.value ?? 0,
-    lote: lote.value ?? "",
-    data_entrada: dataEntrada.value,
-    atualizado_em: atualizadoEm.value,
-  };
-
-  if (id) await svc.update(Number(id), payload);
-  else await svc.create(payload);
-
-  clearForm();
-  snackbar.value = true;
-
-  if (id) router.push("/Estoque");
-}
-
-// CLEAR
-function clearForm(){
-  codEstoque.value = 0;
-  codArmazem.value = null;
-  codProduto.value = null;
-  quantidade.value = null;
-  lote.value = "";
-  dataEntrada.value = new Date().toISOString().substring(0, 10);
-  atualizadoEm.value = new Date().toISOString().substring(0, 10);
-}
-</script>

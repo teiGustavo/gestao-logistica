@@ -89,7 +89,7 @@
             </v-row>
 
             <v-btn color="primary" type="submit" class="mt-4">Salvar</v-btn>
-            <v-btn class="mt-4 ml-2" color="secondary" @click="router.push('/EntregaProduto')">
+            <v-btn class="mt-4 ml-2" color="secondary" @click="router.push({ name: 'entregaproduto' })">
               Cancelar
             </v-btn>
           </v-form>
@@ -110,15 +110,15 @@
 </template>
 
 <script setup lang="ts">
-import DefaultLayout from "@/layouts/DefaultLayout.vue";
-import ProdutoAutocomplete from '@/components/ProdutoAutocomplete.vue';
-import EntregaAutocomplete from '@/components/EntregaAutocomplete.vue';
-import { ref, onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import EntregaAutocomplete from "@/components/EntregaAutocomplete.vue";
+import ProdutoAutocomplete from "@/components/ProdutoAutocomplete.vue";
+import DefaultLayout from "@/layouts/DefaultLayout.vue";
 
-import svc from "@/services/EntregaProdutoService";
-import entregaSvc from "@/services/EntregaService";
-import produtoSvc from "@/services/ProdutoService";
+import { entregaProdutoService } from "@/services/EntregaProdutoService";
+import { entregaService } from "@/services/EntregaService";
+import { produtoService } from "@/services/ProdutoService";
 
 // ROUTER
 const route = useRoute();
@@ -206,28 +206,22 @@ function validateVolume() {
 // LOAD DATA
 onMounted(async () => {
   // 🔹 CARREGAR LISTA DE ENTREGAS (para autocomplete)
-  const ents = await entregaSvc.list();
-  if (ents?.data) {
-    entregas.value = ents.data.map((x: any) => ({
-      codEntrega: x.codEntrega,
-      descricao: `Entrega #${x.codEntrega} - ${x.codigo_externo ?? "Sem Código"}`
-    }));
-  }
+  const ents = await entregaService.list();
+  entregas.value = ents.map((x: any) => ({
+    codEntrega: x.codEntrega,
+    descricao: `Entrega #${x.codEntrega} - ${x.codigo_externo ?? "Sem Código"}`,
+  }));
 
-  const prod = await produtoSvc.list();
-  if (prod?.data) {
-    produtos.value = prod.data.map((x: any) => ({
-      codProduto: x.codProduto,
-      descricao: `Entrega #${x.codProduto} - ${x.codigo_externo ?? "Sem Código"}`
-    }));
-  }
+  const prod = await produtoService.list();
+  produtos.value = prod.map((x: any) => ({
+    codProduto: x.codProduto,
+    descricao: `Entrega #${x.codProduto} - ${x.codigo_externo ?? "Sem Código"}`,
+  }));
 
   // 🔹 EDITAR
   if (id) {
-    const res = await svc.get(Number(id));
-    if (res?.data) {
-      const d = res.data;
-
+    const d = await entregaProdutoService.get(Number(id));
+    if (d) {
       codEntregaProduto.value = d.codEntregaProduto ?? 0;
       codEntrega.value = d.codEntrega ?? undefined;
       codProduto.value = d.codProduto ?? undefined;
@@ -247,7 +241,6 @@ onMounted(async () => {
   }
 });
 
-
 // SAVE
 async function save() {
   if (!validateEntrega()) return;
@@ -263,20 +256,20 @@ async function save() {
     quantidade: quantidade.value ?? 0,
     pesoUnitario: pesoUnitario.value ?? 0,
     volumeUnitario: volumeUnitario.value ?? 0,
-    criadoEm: criadoEm.value
+    criadoEm: criadoEm.value,
   };
 
-  if (id) await svc.update(Number(id), payload);  
-  else await svc.create(payload);
+  if (id) await entregaProdutoService.update(Number(id), payload);
+  else await entregaProdutoService.create(payload);
 
   clearForm();
   snackbar.value = true;
 
-  if (id) router.push('/EntregaProduto');
+  if (id) router.push({ name: 'entregaproduto' });
 }
 
 // CLEAR
-function clearForm(){
+function clearForm() {
   codEntregaProduto.value = 0;
   codEntrega.value = null;
   codProduto.value = null;

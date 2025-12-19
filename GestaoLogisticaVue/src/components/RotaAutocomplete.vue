@@ -1,45 +1,50 @@
 ﻿<script lang="ts" setup>
-import {computed, onMounted, ref, shallowRef, watch} from 'vue';
-import RotaForm from '../views/Rota/RotaForm.vue';
-import rotaService, {Rota} from "../services/RotaService";
+import { computed, onMounted, ref, shallowRef, watch } from "vue";
+import { rotaService, type Rota } from "@/services/RotaService";
+import RotaForm from "@/views/Rota/RotaForm.vue";
 
 const props = defineProps({
   modelValue: [String, Number, Object],
-  itemTitle: {type: String, default: 'text'},
-  itemValue: {type: String, default: 'value'},
+  itemTitle: { type: String, default: "text" },
+  itemValue: { type: String, default: "value" },
   error: Boolean,
   errorMessages: String,
-  label: {type: String, default: 'Filtrar Rota...'},
+  label: { type: String, default: "Filtrar Rota..." },
 });
 
 const items = ref<Rota[]>();
 const dialog = shallowRef(false);
 const internalValue = ref<any>(props.modelValue ?? null);
 
-const emit = defineEmits(['update:modelValue', 'select']);
+const emit = defineEmits(["update:modelValue", "select"]);
 
-watch(() => props.modelValue, (v) => {
-  internalValue.value = v;
-});
+watch(
+  () => props.modelValue,
+  (v) => {
+    internalValue.value = v;
+  },
+);
 
 watch(internalValue, (v) => {
-  emit('update:modelValue', v);
-  const found = (items.value ?? []).find(it => it.codRota === v) ?? null;
-  emit('select', found);
+  emit("update:modelValue", v);
+  const found = (items.value ?? []).find((it) => it.codRota === v) ?? null;
+  emit("select", found);
 });
 
-const itemsForSelect = computed(() => (items.value ?? []).map(v => ({
-  text: `Rota #${v.codRota}`,
-  value: v.codRota,
-  raw: v
-})));
+const itemsForSelect = computed(() =>
+  (items.value ?? []).map((v) => ({
+    text: `Rota #${v.codRota}`,
+    value: v.codRota,
+    raw: v,
+  })),
+);
 
 function updateValue(val: any) {
-  emit('update:modelValue', val);
+  emit("update:modelValue", val);
 }
 
 async function loadItems() {
-  items.value = await rotaService.list().then((res: any) => res?.data ?? []);
+  items.value = await rotaService.list();
 }
 
 watch(dialog, (v) => {

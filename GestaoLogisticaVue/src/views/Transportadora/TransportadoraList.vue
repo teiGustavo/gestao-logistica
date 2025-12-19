@@ -1,10 +1,32 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import DefaultLayout from "@/layouts/DefaultLayout.vue";
+import type { Transportadora } from "@/services/TransportadoraService";
+import { transportadoraService } from "@/services/TransportadoraService";
+
+const items = ref<Transportadora[]>([]);
+const headers = [
+  { key: "codTransportadora", title: "CodTransportadora" },
+  { key: "cnpj", title: "Cnpj" },
+  { key: "nome_fantasia", title: "Nome_fantasia" },
+  { key: "contato", title: "Contato" },
+  { key: "codEndereco", title: "CodEndereco" },
+  { key: "criadoEm", title: "Criado Em" },
+  { key: "actions", title: "Ações", sortable: false },
+];
+
+onMounted(async () => {
+  items.value = await transportadoraService.list();
+});
+</script>
+
 <template>
   <DefaultLayout>
     <v-container>
       <v-card>
         <v-card-title class="text-h5">Listagem de Transportadora</v-card-title>
         <v-card-actions>
-          <v-btn color="primary" @click="$router.push('/Transportadora/create')"
+          <v-btn color="primary" @click="$router.push({ name: 'transportadora-create' })"
             >Novo Transportadora</v-btn
           >
         </v-card-actions>
@@ -18,7 +40,7 @@
             <v-btn
               small
               color="warning"
-              @click="$router.push('/Transportadora/edit/' + item.codTransportadora)"
+              @click="$router.push({ name: 'transportadora-edit', params: { id: item.codTransportadora } })"
               >Editar</v-btn
             >
           </template>
@@ -27,25 +49,3 @@
     </v-container>
   </DefaultLayout>
 </template>
-<script setup lang="ts">
-import DefaultLayout from '@/layouts/DefaultLayout.vue'
-import { ref, onMounted } from 'vue'
-import svc from '@/services/TransportadoraService'
-import type { Transportadora } from '@/services/TransportadoraService'
-
-const items = ref<Transportadora[]>([])
-const headers = [
-  { key: 'codTransportadora', title: 'CodTransportadora' },
-  { key: 'cnpj', title: 'Cnpj' },
-  { key: 'nome_fantasia', title: 'Nome_fantasia' },
-  { key: 'contato', title: 'Contato' },
-  { key: 'codEndereco', title: 'CodEndereco' },
-  { key: 'criadoEm', title: 'Criado Em' },
-  { key: 'actions', title: 'Ações', sortable: false },
-]
-
-onMounted(async () => {
-  const res = await svc.list()
-  items.value = res.data
-})
-</script>

@@ -4,7 +4,7 @@ export interface Rota {
   codRota: number;
   origem?: any;
   destino?: any;
-  distancia_km?: number;
+  distanciaKm?: number;
   criadoEm?: string;
 }
 

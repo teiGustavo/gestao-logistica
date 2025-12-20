@@ -11,16 +11,15 @@ public class RotaService(IRotaRepository repo, IMapper mapper) : IRotaService
 {
     public async Task<Result<IEnumerable<RotaDto>>> GetAllAsync()
     {
-        return Result<IEnumerable<RotaDto>>.Success(mapper.Map<IEnumerable<RotaDto>>(await repo.GetAllAsync()));
+        return Result<IEnumerable<RotaDto>>.Success(await repo.GetAllAsync());
     }
 
     public async Task<Result<RotaDto>> GetAsync(int id)
     {
-        var entity = await repo.GetAsync(id);
-        if (entity == null)
+        var dto = await repo.GetAsync(id);
+        if (dto == null)
             return Result<RotaDto>.Failure("Rota não encontrada.");
 
-        var dto = mapper.Map<RotaDto>(entity);
         return Result<RotaDto>.Success(dto);
     }
 
@@ -48,9 +47,11 @@ public class RotaService(IRotaRepository repo, IMapper mapper) : IRotaService
 
     public async Task<Result> UpdateAsync(RotaDto dto)
     {
-        var existing = await repo.GetAsync(dto.CodRota);
-        if (existing == null)
+        var existingEntity = await repo.GetAsync(dto.CodRota);
+        if (existingEntity == null)
             return Result.Failure("Rota não encontrada.");
+
+        var existing = mapper.Map<Rota>(existingEntity);
 
         mapper.Map(dto, existing);
 

@@ -16,7 +16,7 @@ const emit = defineEmits<{
 const codRota = ref<number | undefined>(undefined);
 const origem = ref<any>(null);
 const destino = ref<any>(null);
-const distancia_km = ref<string | number>("");
+const distanciaKm = ref<string | number>("");
 const criadoEm = ref<string>("");
 
 const origemError = ref(false);
@@ -42,7 +42,7 @@ function validateDestino() {
 }
 
 function validateDistancia() {
-  distanciaError.value = String(distancia_km.value).trim() === "";
+  distanciaError.value = String(distanciaKm.value).trim() === "";
   return !distanciaError.value;
 }
 
@@ -58,7 +58,7 @@ onMounted(async () => {
       codRota.value = r.codRota ?? undefined;
       origem.value = r.origem ?? "";
       destino.value = r.destino ?? "";
-      distancia_km.value = r.distancia_km != null ? String(r.distancia_km) : "";
+      distanciaKm.value = r.distanciaKm != null ? String(r.distanciaKm) : "";
       criadoEm.value = formatDate((r as any).criadoEm);
     }
   } else {
@@ -70,16 +70,12 @@ function clearForm() {
   codRota.value = undefined;
   origem.value = null;
   destino.value = null;
-  distancia_km.value = "";
+  distanciaKm.value = "";
   criadoEm.value = new Date().toISOString().substring(0, 10);
 }
 
 async function save() {
   // normalize mask
-  if (typeof distancia_km.value === 'string') {
-    distancia_km.value = String(distancia_km.value).replace(/[^0-9]/g, '');
-  }
-
   if (!validateOrigem()) return;
   if (!validateDestino()) return;
   if (!validateDistancia()) return;
@@ -88,7 +84,7 @@ async function save() {
     codRota: codRota.value ?? 0,
     origem: origem.value,
     destino: destino.value,
-    distancia_km: Number(distancia_km.value) || 0,
+    distanciaKm: Number(distanciaKm.value) || 0,
     criadoEm: criadoEm.value,
   };
 
@@ -125,7 +121,7 @@ function onCancel() {
       </v-col>
 
       <v-col cols="12" md="6">
-        <v-text-field label="Distancia_km" v-model="distancia_km" type="number" />
+        <v-text-field label="Distância em Km" v-model="distanciaKm" type="number" />
       </v-col>
 
       <v-col cols="12" md="6">

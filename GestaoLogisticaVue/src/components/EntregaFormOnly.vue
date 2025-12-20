@@ -180,7 +180,7 @@ onMounted(async () => {
   clientes.value = cli.map((c: any) => ({ codCliente: c.codCliente, descricao: `${c.nome} — ${c.documento ?? "Sem doc"} (${c.telefone ?? "Sem tel"})` }));
 
   const transp = await transportadoraService.list();
-  transportadoras.value = transp.map((t: any) => ({ codTransportadora: t.codTransportadora, descricao: `${t.nome_fantasia} — CNPJ: ${t.cnpj ?? "N/A"} (${t.contato ?? "Sem contato"})` }));
+  transportadoras.value = transp.map((t: any) => ({ codTransportadora: t.codTransportadora, descricao: `${t.nomeFantasia} — CNPJ: ${t.cnpj ?? "N/A"} (${t.contato ?? "Sem contato"})` }));
 
   const vei = await veiculoService.list();
   veiculos.value = vei.map((v: any) => ({ codVeiculo: v.codVeiculo, descricao: `${v.placa} — ${v.modelo ?? "Modelo indef."} [${v.status}]` }));

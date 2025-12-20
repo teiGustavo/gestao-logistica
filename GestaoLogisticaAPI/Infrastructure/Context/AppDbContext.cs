@@ -400,10 +400,10 @@ public partial class AppDbContext : DbContext
             // entity.Property(e => e.nome).HasMaxLength(120);
             entity.Property(e => e.Origem)
                 .HasColumnName("origem")
-                .HasMaxLength(120);
+                .HasColumnType("int(11)");
             entity.Property(e => e.Destino)
                 .HasColumnName("destino")
-                .HasMaxLength(120);
+                .HasColumnType("int(11)");
             entity.Property(e => e.DistanciaKm)
                 .HasColumnName("distancia_km")
                 .HasPrecision(12, 3);

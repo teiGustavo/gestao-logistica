@@ -80,7 +80,7 @@ onMounted(async () => {
     if (d) {
       codTransportadora.value = d.codTransportadora ?? 0;
       cnpj.value = d.cnpj ?? "";
-      nomeFantasia.value = d.nome_fantasia ?? "";
+      nomeFantasia.value = d.nomeFantasia ?? "";
       contato.value = d.contato ?? "";
       codEndereco.value = d.codEndereco ?? undefined;
       criadoEm.value = d.criadoEm?.substring(0, 10) ?? "";
@@ -108,7 +108,7 @@ async function save() {
 
   const createPayload: any = {
     cnpj: cnpj.value,
-    nome_fantasia: nomeFantasia.value,
+    nomeFantasia: nomeFantasia.value,
     contato: contato.value,
     criadoEm: criadoEm.value,
   };
@@ -117,7 +117,7 @@ async function save() {
   const updatePayload: any = {
     codTransportadora: codTransportadora.value,
     cnpj: cnpj.value,
-    nome_fantasia: nomeFantasia.value,
+    nomeFantasia: nomeFantasia.value,
     contato: contato.value,
     criadoEm: criadoEm.value,
     codEndereco: codEndereco.value ?? undefined,

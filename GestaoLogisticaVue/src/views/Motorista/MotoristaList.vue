@@ -18,6 +18,14 @@ const headers = [
 onMounted(async () => {
   items.value = await motoristaService.list();
 });
+
+const snackbar = ref(false);
+
+const onExclude = async (id: number) => {
+  await motoristaService.remove(id);
+  items.value = items.value.filter((i) => i.codMotorista !== id);
+  snackbar.value = true;
+};
 </script>
 
 <template>
@@ -36,9 +44,29 @@ onMounted(async () => {
               @click="$router.push({ name: 'motorista-edit', params: { id: item.codMotorista } })"
               >Editar</v-btn
             >
+            <v-btn small color="red" class="ms-1" @click="onExclude(item.codMotorista)">
+              Excluir
+            </v-btn>
           </template>
         </v-data-table>
       </v-card>
     </v-container>
+
+    <v-snackbar
+        v-model="snackbar"
+        :timeout="3000"
+    >
+      Motorista excluído com sucesso!
+
+      <template v-slot:actions>
+        <v-btn
+            color="blue"
+            variant="text"
+            @click="snackbar = false"
+        >
+          Fechar
+        </v-btn>
+      </template>
+    </v-snackbar>
   </DefaultLayout>
 </template>

@@ -32,7 +32,7 @@ watch(internalValue, (v) => {
 
 const itemsForSelect = computed(() =>
   (items.value ?? []).map((v) => ({
-    text: `${v.nome_fantasia ?? v.cnpj ?? "Transportadora"}`,
+    text: `${v.nomeFantasia ?? v.cnpj ?? "Transportadora"}`,
     value: v.codTransportadora,
     raw: v,
   })),

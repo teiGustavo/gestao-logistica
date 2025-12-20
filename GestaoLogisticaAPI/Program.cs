@@ -44,6 +44,12 @@ internal class Program
         });
 
         // =====================================
+        // AutoMapper + FluentValidation
+        // =====================================
+        builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+        builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+        // =====================================
         // Dependency Injection (Repository + Service)
         // =====================================
         builder.Services.AddScoped<IArmazemRepository, ArmazemRepository>();
@@ -86,11 +92,6 @@ internal class Program
         builder.Services.AddScoped<IVeiculoRepository, VeiculoRepository>();
         builder.Services.AddScoped<IVeiculoService, VeiculoService>();
 
-        // =====================================
-        // AutoMapper + FluentValidation
-        // =====================================
-        builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-        builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
         // =====================================
         // CORS

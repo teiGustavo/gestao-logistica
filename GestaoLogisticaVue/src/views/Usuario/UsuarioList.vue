@@ -17,6 +17,14 @@ const headers = [
 onMounted(async () => {
   items.value = await usuarioService.list();
 });
+
+const snackbar = ref(false);
+
+const onExclude = async (id: number) => {
+  await usuarioService.remove(id);
+  items.value = items.value.filter((i) => i.codUsuario !== id);
+  snackbar.value = true;
+};
 </script>
 
 <template>
@@ -25,7 +33,9 @@ onMounted(async () => {
       <v-card>
         <v-card-title class="text-h5">Listagem de Usuários</v-card-title>
         <v-card-actions>
-          <v-btn color="primary" @click="$router.push({ name: 'usuario-create' })"
+          <v-btn
+            color="primary"
+            @click="$router.push({ name: 'usuario-create' })"
             >Novo Usuário</v-btn
           >
         </v-card-actions>
@@ -42,9 +52,32 @@ onMounted(async () => {
               @click="$router.push({ name: 'usuario-edit', params: { id: item.codUsuario } })"
               >Editar</v-btn
             >
+            <v-btn
+              small
+              color="red"
+              class="ms-1"
+              @click="onExclude(item.codUsuario)"
+            >
+              Excluir
+            </v-btn>
           </template>
         </v-data-table>
       </v-card>
     </v-container>
+
+    <v-snackbar v-model="snackbar" :timeout="3000">
+      Usuário excluído com sucesso!
+
+      <template v-slot:actions>
+        <v-btn
+          color="blue"
+          variant="text"
+          @click="snackbar = false"
+        >
+          Fechar
+        </v-btn>
+      </template>
+    </v-snackbar>
   </DefaultLayout>
 </template>
+
